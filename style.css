@@ -50,3 +50,42 @@ body {
   .outlier {
 	background-color: pink;
 }
+
+.stop-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.stop-table th,
+.stop-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+.stop-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.stop-table tr:nth-child(odd) {
+  background-color: #fff;
+}
+
+.stop-table th {
+  position: sticky;
+  top: 0;
+  background: #eee;
+  z-index: 2;
+}
+
+.stop-table .average-row {
+  position: sticky;
+  top: 34px; /* Adjust if your header height differs */
+  z-index: 1;
+}
+
+.stop-table .average-row td {
+  background-color: #e6e0f8 !important; /* Light purple */
+  font-weight: bold;
+}
+

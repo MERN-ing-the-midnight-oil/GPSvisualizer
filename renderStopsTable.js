@@ -88,7 +88,14 @@ export function renderStopsTable(grouped, thresholdMinutes = 5) {
 		}
 	});
 	avgRow.innerHTML = avgCells.join("");
-	table.appendChild(avgRow);
+	avgRow.classList.add("average-row");
+
+	// Insert just after the header row (which is the first child of the table)
+	if (table.children.length > 1) {
+		table.insertBefore(avgRow, table.children[1]);
+	} else {
+		table.appendChild(avgRow);
+	}
 
 	output.appendChild(table);
 }
