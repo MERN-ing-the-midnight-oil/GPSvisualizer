@@ -120,68 +120,89 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	function renderStops(grouped, thresholdMinutes = 5) {
 		output.innerHTML = "";
-		Object.entries(grouped).forEach(([stop, times]) => {
-			if (!Array.isArray(times) || times.length === 0) return;
 
-			const stopDiv = document.createElement("div");
-			stopDiv.className = "stop-block";
+		const dates = new Set();
+		const stopTimeMap = {};
+		const avgTimeMap = {};
 
-			const secondsList = times.map((t) => t.numericTime).sort((a, b) => a - b);
-			const meanSeconds =
-				secondsList.reduce((a, b) => a + b, 0) / secondsList.length;
-			const meanHours = Math.floor(meanSeconds / 3600);
-			const meanMinutes = Math.floor((meanSeconds % 3600) / 60);
-			const meanHour12 = meanHours % 12 || 12;
-			const meanAMPM = meanHours >= 12 ? "PM" : "AM";
-			const formattedMean = `${meanHour12}:${String(meanMinutes).padStart(
+		// Build maps: stop → {date → time}, also collect dates
+		for (const [key, times] of Object.entries(grouped)) {
+			const stop = key.replace(/ – (AM|PM)$/, "");
+			times.forEach((time) => {
+				dates.add(time.dateStr);
+				if (!stopTimeMap[stop]) stopTimeMap[stop] = {};
+				stopTimeMap[stop][time.dateStr] = time;
+			});
+		}
+
+		// Compute average numeric time per stop
+		for (const stop in stopTimeMap) {
+			const times = Object.values(stopTimeMap[stop]).map((t) => t.numericTime);
+			const avg = times.reduce((a, b) => a + b, 0) / times.length;
+			avgTimeMap[stop] = avg;
+		}
+
+		// Sort stops by average time
+		const sortedStops = Object.keys(stopTimeMap).sort(
+			(a, b) => avgTimeMap[a] - avgTimeMap[b]
+		);
+
+		const sortedDates = Array.from(dates).sort();
+
+		// Build table
+		const table = document.createElement("table");
+		table.className = "summary-table";
+
+		const headerRow = document.createElement("tr");
+		const thEmpty = document.createElement("th");
+		thEmpty.textContent = "Date";
+		headerRow.appendChild(thEmpty);
+		sortedStops.forEach((stop) => {
+			const th = document.createElement("th");
+			th.textContent = stop;
+			headerRow.appendChild(th);
+		});
+		table.appendChild(headerRow);
+
+		// Add data rows
+		sortedDates.forEach((date) => {
+			const row = document.createElement("tr");
+			const dateCell = document.createElement("td");
+			dateCell.textContent = date;
+			row.appendChild(dateCell);
+
+			sortedStops.forEach((stop) => {
+				const td = document.createElement("td");
+				const time = stopTimeMap[stop][date];
+				if (time) td.textContent = time.timeStr;
+				else td.textContent = ""; // leave blank
+				row.appendChild(td);
+			});
+
+			table.appendChild(row);
+		});
+
+		// Add average row
+		const avgRow = document.createElement("tr");
+		const avgLabel = document.createElement("td");
+		avgLabel.textContent = "Average";
+		avgRow.appendChild(avgLabel);
+
+		sortedStops.forEach((stop) => {
+			const td = document.createElement("td");
+			const avgSeconds = avgTimeMap[stop];
+			const hours = Math.floor(avgSeconds / 3600);
+			const minutes = Math.floor((avgSeconds % 3600) / 60);
+			const formatted = `${hours % 12 || 12}:${String(minutes).padStart(
 				2,
 				"0"
-			)} ${meanAMPM}`;
-
-			const medianSeconds =
-				secondsList.length % 2 === 1
-					? secondsList[Math.floor(secondsList.length / 2)]
-					: (secondsList[secondsList.length / 2 - 1] +
-							secondsList[secondsList.length / 2]) /
-					  2;
-
-			const title = document.createElement("div");
-			title.className = "stop-name";
-			title.textContent = `${stop} – Avg: ${formattedMean}`;
-			stopDiv.appendChild(title);
-
-			times
-				.sort((a, b) => {
-					const aDate = new Date(`${a.dateStr}T${convertTo24Hour(a.timeStr)}`);
-					const bDate = new Date(`${b.dateStr}T${convertTo24Hour(b.timeStr)}`);
-					return aDate - bDate;
-				})
-				.forEach((entry) => {
-					const entryDiv = document.createElement("div");
-					entryDiv.className = "time-entry";
-
-					const timeDiffMinutes =
-						Math.abs(entry.numericTime - medianSeconds) / 60;
-					if (timeDiffMinutes > thresholdMinutes) {
-						entryDiv.classList.add("outlier");
-					}
-
-					const dateSpan = document.createElement("span");
-					dateSpan.textContent = entry.dateStr;
-					dateSpan.style.width = "120px";
-
-					const timeSpan = document.createElement("span");
-					timeSpan.textContent = entry.timeStr;
-					timeSpan.style.width = "100px";
-					timeSpan.style.marginLeft = "10px";
-
-					entryDiv.appendChild(dateSpan);
-					entryDiv.appendChild(timeSpan);
-					stopDiv.appendChild(entryDiv);
-				});
-
-			output.appendChild(stopDiv);
+			)} ${hours >= 12 ? "PM" : "AM"}`;
+			td.textContent = formatted;
+			avgRow.appendChild(td);
 		});
+		table.appendChild(avgRow);
+
+		output.appendChild(table);
 	}
 
 	thresholdInput.addEventListener("input", () => {
