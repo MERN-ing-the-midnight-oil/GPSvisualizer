@@ -1,3 +1,5 @@
+import { renderStopsTable } from "./renderStopsTable.js";
+
 document.addEventListener("DOMContentLoaded", function () {
 	const dropZone = document.getElementById("drop-zone");
 	const output = document.getElementById("output");
@@ -108,106 +110,19 @@ document.addEventListener("DOMContentLoaded", function () {
 					const isPM = time.numericTime >= 12 * 3600;
 					const groupKey = `${location} – ${isPM ? "PM" : "AM"}`;
 					if (!grouped[groupKey]) grouped[groupKey] = [];
-					grouped[groupKey].push(time);
+					grouped[groupKey].push({ ...time, location });
 				}
 			});
 
 			allStops = grouped;
-			renderStops(grouped, parseInt(thresholdInput.value, 10));
+			renderStopsTable(grouped, parseInt(thresholdInput.value, 10));
 		};
 		reader.readAsArrayBuffer(file);
 	});
 
-	function renderStops(grouped, thresholdMinutes = 5) {
-		output.innerHTML = "";
-
-		const dates = new Set();
-		const stopTimeMap = {};
-		const avgTimeMap = {};
-
-		// Build maps: stop → {date → time}, also collect dates
-		for (const [key, times] of Object.entries(grouped)) {
-			const stop = key.replace(/ – (AM|PM)$/, "");
-			times.forEach((time) => {
-				dates.add(time.dateStr);
-				if (!stopTimeMap[stop]) stopTimeMap[stop] = {};
-				stopTimeMap[stop][time.dateStr] = time;
-			});
-		}
-
-		// Compute average numeric time per stop
-		for (const stop in stopTimeMap) {
-			const times = Object.values(stopTimeMap[stop]).map((t) => t.numericTime);
-			const avg = times.reduce((a, b) => a + b, 0) / times.length;
-			avgTimeMap[stop] = avg;
-		}
-
-		// Sort stops by average time
-		const sortedStops = Object.keys(stopTimeMap).sort(
-			(a, b) => avgTimeMap[a] - avgTimeMap[b]
-		);
-
-		const sortedDates = Array.from(dates).sort();
-
-		// Build table
-		const table = document.createElement("table");
-		table.className = "summary-table";
-
-		const headerRow = document.createElement("tr");
-		const thEmpty = document.createElement("th");
-		thEmpty.textContent = "Date";
-		headerRow.appendChild(thEmpty);
-		sortedStops.forEach((stop) => {
-			const th = document.createElement("th");
-			th.textContent = stop;
-			headerRow.appendChild(th);
-		});
-		table.appendChild(headerRow);
-
-		// Add data rows
-		sortedDates.forEach((date) => {
-			const row = document.createElement("tr");
-			const dateCell = document.createElement("td");
-			dateCell.textContent = date;
-			row.appendChild(dateCell);
-
-			sortedStops.forEach((stop) => {
-				const td = document.createElement("td");
-				const time = stopTimeMap[stop][date];
-				if (time) td.textContent = time.timeStr;
-				else td.textContent = ""; // leave blank
-				row.appendChild(td);
-			});
-
-			table.appendChild(row);
-		});
-
-		// Add average row
-		const avgRow = document.createElement("tr");
-		const avgLabel = document.createElement("td");
-		avgLabel.textContent = "Average";
-		avgRow.appendChild(avgLabel);
-
-		sortedStops.forEach((stop) => {
-			const td = document.createElement("td");
-			const avgSeconds = avgTimeMap[stop];
-			const hours = Math.floor(avgSeconds / 3600);
-			const minutes = Math.floor((avgSeconds % 3600) / 60);
-			const formatted = `${hours % 12 || 12}:${String(minutes).padStart(
-				2,
-				"0"
-			)} ${hours >= 12 ? "PM" : "AM"}`;
-			td.textContent = formatted;
-			avgRow.appendChild(td);
-		});
-		table.appendChild(avgRow);
-
-		output.appendChild(table);
-	}
-
 	thresholdInput.addEventListener("input", () => {
 		const threshold = parseInt(thresholdInput.value, 10);
 		thresholdLabel.textContent = threshold;
-		renderStops(allStops, threshold);
+		renderStopsTable(allStops, threshold);
 	});
 });

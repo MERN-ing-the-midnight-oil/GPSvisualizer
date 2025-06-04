@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
+		<meta charset="UTF-8" />
+		<title>Bus Stop Summary</title>
 		<link
 			rel="stylesheet"
 			href="style.css" />
-
-		<meta charset="UTF-8" />
-		<title>Bus Stop Summary</title>
 		<style>
 			body {
 				font-family: sans-serif;
@@ -44,9 +43,9 @@
 	<body>
 		<h1>Bus Stop Summary</h1>
 		<div id="drop-zone">Drag and drop your .xlsx file here</div>
-		<label for="threshold"
-			>Outlier Threshold (minutes): <span id="threshold-label">5</span></label
-		>
+		<label for="threshold">
+			Outlier Threshold (minutes): <span id="threshold-label">5</span>
+		</label>
 		<input
 			type="range"
 			id="threshold"
@@ -57,7 +56,9 @@
 
 		<!-- XLSX Library -->
 		<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-		<!-- Main Script -->
-		<script src="main.js"></script>
+		<!-- Main Script (module-enabled) -->
+		<script
+			type="module"
+			src="main.js"></script>
 	</body>
 </html>

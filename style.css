@@ -47,4 +47,6 @@ body {
   .outlier {
     background-color: pink !important;
   }
-  
+  .outlier {
+	background-color: pink;
+}
