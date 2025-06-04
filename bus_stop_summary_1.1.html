@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Bus Stop Summary</title>
+		<style>
+			body {
+				font-family: sans-serif;
+				padding: 20px;
+			}
+			#drop-zone {
+				border: 2px dashed #aaa;
+				padding: 20px;
+				text-align: center;
+				margin-bottom: 20px;
+			}
+			.stop-block {
+				border: 1px solid #ccc;
+				padding: 10px;
+				margin-bottom: 15px;
+			}
+			.time-entry {
+				display: flex;
+				align-items: center;
+				margin: 3px 0;
+			}
+			.time-entry.outlier {
+				background-color: #ffdddd;
+			}
+			.time-entry button {
+				margin-left: 10px;
+			}
+			.stop-name {
+				font-weight: bold;
+				font-size: 1.2em;
+				margin-bottom: 5px;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Bus Stop Summary</h1>
+		<div id="drop-zone">Drag and drop your .xlsx file here</div>
+		<label for="threshold"
+			>Outlier Threshold (minutes): <span id="threshold-label">5</span></label
+		>
+		<input
+			type="range"
+			id="threshold"
+			min="1"
+			max="30"
+			value="5" />
+		<div id="output"></div>
+
+		<!-- XLSX Library -->
+		<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+		<!-- Main Script -->
+		<script src="main.js"></script>
+	</body>
+</html>
