@@ -1,3 +1,5 @@
+const excludedTimes = new Set();
+
 export function renderStopsTable(grouped, thresholdMinutes = 5) {
 	const output = document.getElementById("output");
 	output.innerHTML = "";
@@ -60,9 +62,12 @@ export function renderStopsTable(grouped, thresholdMinutes = 5) {
 				const deviation =
 					Math.abs(timeObj.numericTime - stopMedians[stop]) / 60;
 				const isOutlier = deviation > thresholdMinutes;
-				cells.push(
-					`<td class="${isOutlier ? "outlier" : ""}">${timeObj.timeStr}</td>`
-				);
+				const key = `${stop}|${date}`;
+				const excludedClass = excludedTimes.has(key) ? "excluded-time" : "";
+				const btnHTML = `<button class="time-btn ${excludedClass}" data-stop="${stop}" data-date="${date}" data-value="${timeObj.numericTime}">
+					${timeObj.timeStr}
+				</button>`;
+				cells.push(`<td class="${isOutlier ? "outlier" : ""}">${btnHTML}</td>`);
 			}
 		});
 		row.innerHTML = cells.join("");
@@ -71,14 +76,55 @@ export function renderStopsTable(grouped, thresholdMinutes = 5) {
 
 	const avgRow = document.createElement("tr");
 	const avgCells = [`<td><strong>Average</strong></td>`];
+	sortedStops.forEach(() => avgCells.push(`<td><em>--</em></td>`));
+	avgRow.innerHTML = avgCells.join("");
+
+	avgRow.classList.add("average-row");
+	avgRow.setAttribute("id", "average-row"); // For easy updates
+	table.insertBefore(avgRow, table.children[1]); // Insert after header
+
+	output.appendChild(table);
+
+	// Button event listeners
+	table.querySelectorAll(".time-btn").forEach((btn) => {
+		btn.addEventListener("click", () => {
+			const stop = btn.dataset.stop;
+			const date = btn.dataset.date;
+			const key = `${stop}|${date}`;
+
+			if (excludedTimes.has(key)) {
+				excludedTimes.delete(key);
+				btn.classList.remove("excluded-time");
+			} else {
+				excludedTimes.add(key);
+				btn.classList.add("excluded-time");
+			}
+			console.log("Excluded times set:", Array.from(excludedTimes));
+			updateAverageRow(table, stopTimeMap, sortedStops);
+		});
+	});
+	// Initial render of the average row
+	updateAverageRow(table, stopTimeMap, sortedStops);
+}
+
+// Placeholder: will be implemented next
+function updateAverageRow(table, stopTimeMap, sortedStops) {
+	const avgRow = table.querySelector("#average-row");
+
+	const avgCells = [`<td><strong>Average</strong></td>`];
+
 	sortedStops.forEach((stop) => {
-		const times = Object.values(stopTimeMap[stop])
-			.map((t) => t.numericTime)
+		const entries = Object.entries(stopTimeMap[stop]);
+		const includedTimes = entries
+			.filter(([date, _]) => !excludedTimes.has(`${stop}|${date}`))
+			.map(([_, t]) => t.numericTime)
 			.filter((n) => !isNaN(n));
-		if (times.length === 0) {
-			avgCells.push("<td></td>");
+
+		if (includedTimes.length === 0) {
+			avgCells.push("<td><em>--</em></td>");
 		} else {
-			const avg = times.reduce((sum, val) => sum + val, 0) / times.length;
+			const avg =
+				includedTimes.reduce((sum, val) => sum + val, 0) / includedTimes.length;
 			const h = Math.floor(avg / 3600);
 			const m = Math.floor((avg % 3600) / 60);
 			const h12 = h % 12 || 12;
@@ -87,15 +133,6 @@ export function renderStopsTable(grouped, thresholdMinutes = 5) {
 			avgCells.push(`<td><strong>${formatted}</strong></td>`);
 		}
 	});
+
 	avgRow.innerHTML = avgCells.join("");
-	avgRow.classList.add("average-row");
-
-	// Insert just after the header row (which is the first child of the table)
-	if (table.children.length > 1) {
-		table.insertBefore(avgRow, table.children[1]);
-	} else {
-		table.appendChild(avgRow);
-	}
-
-	output.appendChild(table);
 }
