@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<title>Bus Stop Summary</title>
+		<title>GPS Route Visualizer</title>
 		<link
 			rel="stylesheet"
 			href="style.css" />
@@ -41,18 +41,46 @@
 		</style>
 	</head>
 	<body>
-		<h1>Bus Stop Summary</h1>
-		<div id="drop-zone">Drag and drop your .xlsx file here</div>
-		<label for="threshold">
-			Outlier Threshold (minutes): <span id="threshold-label">5</span>
-		</label>
-		<input
-			type="range"
-			id="threshold"
-			min="1"
-			max="30"
-			value="5" />
-		<div id="output"></div>
+		<h1>🚌 GPS Route Visualizer 🚌</h1>
+		<div id="drop-zone">
+			<strong style="font-size: 2rem">
+				👉 👉 ➡️ Drag and drop your bus stop GPS spreadsheet here ⬅️ 👈
+				👈</strong
+			><br />
+			><br />
+			<small>
+				The spreadsheet must include the following headers:<br />
+				<code>Location</code>, <code>Event</code>, <code>Event Date</code>,
+				<code>Created On</code>
+			</small>
+		</div>
+
+		<div style="margin: 30px 0; text-align: center">
+			<label
+				for="threshold"
+				style="font-size: 1.5rem; display: block; margin-bottom: 10px">
+				Adjust the <strong>Outlier Threshold Slider</strong> (in minutes):
+				<span id="threshold-label">5</span>
+			</label>
+			<input
+				type="range"
+				id="threshold"
+				min="1"
+				max="30"
+				value="5"
+				style="width: 33%; height: 30px" />
+			<p style="font-size: 1rem; margin-top: 10px">
+				Stop times that differ from the average by more than this threshold will
+				be marked as outliers and visually highlighted.
+			</p>
+		</div>
+		<p style="text-align: center; font-size: 1rem; margin-top: 20px">
+			💡 Click on any time to exclude it from the average calculation. Excluded
+			times will appear
+			<span style="color: red; text-decoration: line-through"
+				>struck-through in red</span
+			>.
+		</p>
 
 		<!-- XLSX Library -->
 		<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -60,5 +88,6 @@
 		<script
 			type="module"
 			src="main.js"></script>
+		<div id="output"></div>
 	</body>
 </html>
