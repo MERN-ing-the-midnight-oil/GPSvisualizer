@@ -52,7 +52,19 @@ export function renderStopsTable(grouped, thresholdMinutes = 5) {
 
 	allDates.forEach((date) => {
 		const row = document.createElement("tr");
-		const cells = [`<td><strong>${date}</strong></td>`];
+		// Extract one example timeObj that includes dayName
+		let dayName = "";
+		for (const stop of sortedStops) {
+			const t = stopTimeMap[stop][date];
+			if (t && t.dayName) {
+				dayName = t.dayName;
+				break;
+			}
+		}
+
+		const cells = [
+			`<td><strong>${date}${dayName ? ` (${dayName})` : ""}</strong></td>`,
+		];
 
 		sortedStops.forEach((stop) => {
 			const timeObj = stopTimeMap[stop][date];

@@ -94,23 +94,28 @@ document.addEventListener("DOMContentLoaded", function () {
 					if (fullDate.getDay() === 4) return;
 
 					if (!dailyEvents[time.dateStr]) dailyEvents[time.dateStr] = [];
-					dailyEvents[time.dateStr].push({ location, time, fullDate });
+					const dayName = fullDate.toLocaleDateString("en-US", {
+						weekday: "long",
+					});
+					dailyEvents[time.dateStr].push({ location, time, fullDate, dayName });
 				}
 			});
 
 			Object.values(dailyEvents).forEach((dayRows) => {
 				const sorted = dayRows.sort((a, b) => a.fullDate - b.fullDate);
 				let startIncluding = false;
-				for (const { location, time } of sorted) {
+				for (const { location, time, dayName } of sorted) {
 					if (location === "0 Bus Garage Parking Lot") {
 						startIncluding = true;
 						continue;
 					}
 					if (!startIncluding) continue;
+
 					const isPM = time.numericTime >= 12 * 3600;
 					const groupKey = `${location} – ${isPM ? "PM" : "AM"}`;
 					if (!grouped[groupKey]) grouped[groupKey] = [];
-					grouped[groupKey].push({ ...time, location });
+
+					grouped[groupKey].push({ ...time, location, dayName });
 				}
 			});
 
